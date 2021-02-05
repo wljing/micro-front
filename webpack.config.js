@@ -39,7 +39,7 @@ const plugins = [
 
 module.exports =  {
   entry: {
-    index: './index.ts',
+    index: './index.js',
   },
   output: {
     path: resolve('dist'),
