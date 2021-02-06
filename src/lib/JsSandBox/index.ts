@@ -6,22 +6,29 @@ interface JsSandBoxConfig {
   script: string
 };
 
-export default class JsSandBox {
-  static JsSandBoxIndex: number = 0;
-  static PreSandBoxName = '__JS_SAND_BOX_';
+type parameter = string | number | symbol;
 
-  propertiesMap: Map<string | number | symbol, any>;
-  beforeMounted: Function;
-  mounted: Function;
-  beforeDestory: Function;
-  destoryed: Function;
-  fakerWindow: Window;
-  sandBoxName: string;
+export default class JsSandBox {
+  private static JsSandBoxIndex: number = 0;
+  private static PreSandBoxName = '__JS_SAND_BOX_';
+  private static GlobalPropertyMap = new Map();
+  
+  private propertiesMap: Map<parameter, any>;
+  private beforeMounted: Function;
+  private mounted: Function;
+  private beforeDestory: Function;
+  private destoryed: Function;
+  private fakerWindow: Window;
+  private sandBoxName: string;
+
+  static defineGlobalProperty(key: any, value: any) {
+    JsSandBox.GlobalPropertyMap.set(key, value);
+  }
 
   constructor(config: JsSandBoxConfig) {
     this.init(config);
   }
-  init(config: JsSandBoxConfig) {
+  private init(config: JsSandBoxConfig) {
     this.propertiesMap = new Map();
     const defaultLifeCycleFunction = () => { };
     let script = '';
@@ -47,7 +54,7 @@ export default class JsSandBox {
     fn();
     typeof cb === 'function' && cb();
   }
-  initFakerWindow() {
+  private initFakerWindow() {
     const propertiesMap = this.propertiesMap;
     Object.keys(window).forEach((p: any) => {
       if (Reflect.getOwnPropertyDescriptor(window, p).configurable) {
@@ -60,7 +67,11 @@ export default class JsSandBox {
         if (p === 'window' || p === 'self' || p === 'top') {
           return self.fakerWindow;
         }
-        return propertiesMap.has(p) ? propertiesMap.get(p) : target[p];
+        return propertiesMap.has(p)
+          ? propertiesMap.get(p)
+          : JsSandBox.GlobalPropertyMap.has(p)
+            ? JsSandBox.GlobalPropertyMap.get(p)
+            : target[p];
       },
       set(target: Window, p: any, v: any) {
         if (propertiesMap.has(p)) {
@@ -81,7 +92,7 @@ export default class JsSandBox {
     });
     
   }
-  mountFakerWindow() {
+  private mountFakerWindow() {
     const sandBoxName = `${JsSandBox.PreSandBoxName}${JsSandBox.JsSandBoxIndex++}`;
     this.sandBoxName = sandBoxName;
     const fakerWindow = this.fakerWindow;
@@ -95,6 +106,5 @@ export default class JsSandBox {
       configurable: false,
       enumerable: false,
     });
-    
   }
 }
