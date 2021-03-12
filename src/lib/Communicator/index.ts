@@ -53,7 +53,7 @@ class ChannelNode {
 }
 
 class Communicator {
-  static ChannelRoot = new ChannelNode();
+  private static ChannelRoot = new ChannelNode();
   on(channel: string, cb: Function) {
     let curChannelNode = Communicator.ChannelRoot;
     if (typeof channel !== 'string') {
@@ -101,15 +101,16 @@ class Communicator {
   }
 }
 
-function singleMode(constructor: Function): Function {
-  let foo: Object = null;
-  return function () {
+function singleMode(constructor: Function): FunctionConstructor {
+  let foo: any = null;
+  const fn = function () {
     if (!foo) {
       foo = Object.create(constructor.prototype);
-      constructor.call(foo)
+      constructor.call(foo);
     }
     return foo;
   }
+  return fn as FunctionConstructor;
 }
 
-export default singleMode(Communicator);
+export default singleMode(Communicator) as unknown as Communicator;
