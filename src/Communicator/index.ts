@@ -1,3 +1,8 @@
+/**
+ * @description 提供app间的通信能力
+ */
+
+// 渠道节点类
 class ChannelNode {
   callbackList: Array<Function>;
   childChannel: Map<string, ChannelNode>;
@@ -6,6 +11,8 @@ class ChannelNode {
     this.callbackList = [];
     this.childChannel = new Map();
   }
+
+  // 添加回调
   add(cb: Function): boolean {
     let result = false;
     if (typeof cb === 'function') {
@@ -14,6 +21,8 @@ class ChannelNode {
     }
     return result;
   }
+
+  // 移除回调
   remove(cb: Function): boolean {
     let result = false;
     const oldIndex = this.callbackList.indexOf(cb);
@@ -23,6 +32,8 @@ class ChannelNode {
     }
     return result;
   }
+  
+  // 添加子节点
   addChild(name: string, child: ChannelNode = new ChannelNode()): boolean {
     if (typeof name !== 'string') {
       console.error(new TypeError('name is not a string'));
@@ -39,12 +50,15 @@ class ChannelNode {
     this.childChannel.set(name, child);
     return true;
   }
+
   hasChild(name: string): boolean {
     return this.childChannel.has(name);
   }
+
   getChild(name: string): ChannelNode | undefined {
     return this.childChannel.get(name);
   }
+
   run(payload: any) {
     this.callbackList.forEach(fn => {
       fn(payload);

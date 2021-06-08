@@ -1,3 +1,6 @@
+/**
+ * @description js沙箱的创建、初始化
+ */
 type parameter = string | number | symbol;
 
 // 需要绑定window对象的方法
@@ -44,20 +47,22 @@ export default class JsSandBox {
   constructor() {
     this.init();
   }
+  
   private init() {
     this.propertiesMap = new Map();
     this.unConfigurableMap = new Map();
     this.initFakerWindow();
     this.mountFakerWindow();
   }
+
   run(script: string, cb: Function = () => {}) {
-    console.log(script);
     const fn = new Function(`
       with(window['${this.sandBoxName}']) {
         ${script}
       }
     `);
-    fn();    
+    fn();
+    cb();
   }
 
   // 初始化沙箱
@@ -135,6 +140,7 @@ export default class JsSandBox {
           // 沙箱定义属性
           log = 'sendbox';
           self.propertiesMap.set(p, v);
+          window[p] = v; // 使代理生效
         }
         if (self.isShowLog) {
           console.log('set', p, v, log);

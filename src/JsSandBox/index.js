@@ -40,9 +40,9 @@ var JsSandBox = (function () {
     };
     JsSandBox.prototype.run = function (script, cb) {
         if (cb === void 0) { cb = function () { }; }
-        console.log(script);
         var fn = new Function("\n      with(window['" + this.sandBoxName + "']) {\n        " + script + "\n      }\n    ");
         fn();
+        cb();
     };
     JsSandBox.prototype.initFakerWindow = function () {
         var unConfigurableMap = this.unConfigurableMap;
@@ -114,6 +114,7 @@ var JsSandBox = (function () {
                 else {
                     log = 'sendbox';
                     self.propertiesMap.set(p, v);
+                    window[p] = v;
                 }
                 if (self.isShowLog) {
                     console.log('set', p, v, log);

@@ -1,3 +1,6 @@
+/**
+ * @description app的管理器
+ */
 import JsSandBox from '../JsSandBox';
 import AppLoader, { AppLoadConfig } from '../AppLoader/index';
 import Communicator from '../Communicator';
@@ -37,18 +40,11 @@ export default class AppMannger {
   init = () => {
     const { apps } = this.config;
     apps.forEach(appConfig => {
-      const appStatus: AppStatus = {
-        loader: null,
-        active: false,
-        appId: this.getAppId(),
-        appConfig,
-      };
-      this.appStatusMap.set(appStatus.appId, appStatus);
-      this.appList.push(appStatus);
+      this.add(appConfig);
     });
   }
 
-  load = (appId: string | number, force: boolean = false) => {
+  load = (appId: string | number, parent: HTMLElement, force: boolean = false) => {
     if (typeof appId === 'number') {
       appId = this.appList[appId].appId;
     }
@@ -56,6 +52,10 @@ export default class AppMannger {
       const appStatus = this.appStatusMap.get(appId);
       console.log(appStatus);
       if (!appStatus.active || force) {
+        console.log('parnet', parent, parent instanceof HTMLElement);
+        if (parent instanceof HTMLElement) {
+          appStatus.appConfig.parent = parent;
+        }
         const loader = new AppLoader(appStatus.appConfig);
         loader.load();
         appStatus.loader = loader;
@@ -67,6 +67,22 @@ export default class AppMannger {
   }
 
   reLoad = (appId: string) => {
-    this.load(appId, true);
+    this.load(appId, null, true);
+  }
+
+  add = (appConfig: AppConfig) => {
+    const appStatus: AppStatus = {
+      loader: null,
+      active: false,
+      appId: appConfig.id || this.getAppId(),
+      appConfig,
+    };
+    this.appStatusMap.set(appStatus.appId, appStatus);
+    this.appList.push(appStatus);
+  }
+
+  del = (appId: string) => {
+    this.appList = this.appList.filter(v => v.appId === appId);
+    this.appStatusMap.delete(appId);
   }
 }

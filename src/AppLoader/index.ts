@@ -1,3 +1,6 @@
+/**
+ * @description app加载器，提供app的加载、销毁能力，并执行相关的生命周期方法
+ */
 import JsSandBox from '../JsSandBox/index';
 
 export type AppLoadConfig = {
@@ -16,6 +19,11 @@ enum LoadMode { js = 'script', html = 'html' };
 const getDir = (path: string): string => {
   const chunks = path.split('/');
   return chunks.length === 0 ? path : chunks.slice(0, -1).join('/');
+}
+
+function uintToString(uintArray: Uint8Array) {
+  const encodedString = String.fromCharCode.apply(null, uintArray);
+  return decodeURIComponent(escape(encodedString));
 }
 
 export default class AppLoader {
@@ -62,6 +70,7 @@ export default class AppLoader {
         console.error(`fetch ${this.url} failed`);
         return;
       }
+      
       this.htmlText = data;
     }
     this.mount();
@@ -86,6 +95,7 @@ export default class AppLoader {
           div.removeChild(v);
         }
       });
+      console.log('div', div);
       this.parent.appendChild(div);
       this.loadScriptList(srcList);
     } else {
@@ -95,7 +105,7 @@ export default class AppLoader {
   }
 
   destory() {
-    this.destoryed();
+    this.beforeDestory();
     const root = document.querySelector(this.id);
     root.innerHTML = '';
     this.destoryed();
@@ -114,34 +124,16 @@ export default class AppLoader {
 
   }
   private fetchUrlData(url: string) {
-    console.log('url', url);
     return new Promise((resolve, reject) => {
       fetch(url, {
         method: 'Get',
       })
         .then(res => {
-          const reader = res.body.getReader();
-          if (!res.ok) {
-            resolve('');
-          }
-          let str = '';
-          const read = () => {
-            reader.read()
-            .then(({ done, value }) => {
-              const unitArrayBuffer = value;
-              if (unitArrayBuffer) {
-                unitArrayBuffer.forEach(c => {
-                  str += String.fromCharCode(c)
-                });
-              }
-              if (done) {
-                resolve(str);
-              } else {
-                read();
-              }
+          res.text()
+            .then(value => {
+              resolve(value);
             })
-          }
-          read();
+            .catch(_ => reject());
         })
         .catch((error) => {
           console.error(error);
@@ -154,14 +146,7 @@ export default class AppLoader {
     try {
       this.jsSandBox.run(this.script, () => this.mounted());
     } catch (e) {
-      console.log('加载失败重新加载', e);
-      // console.log(this.script);
-      // this.jsSandBox.run(def, () => this.mounted());
-
-      // setTimeout(() => {
-      //   this.jsSandBox = new JsSandBox();
-      //   this.runScript();
-      // }, 300);
+      console.error('加载失败', e);
     }
   }
 }

@@ -11,17 +11,10 @@ var AppMannger = (function () {
         this.init = function () {
             var apps = _this.config.apps;
             apps.forEach(function (appConfig) {
-                var appStatus = {
-                    loader: null,
-                    active: false,
-                    appId: _this.getAppId(),
-                    appConfig: appConfig
-                };
-                _this.appStatusMap.set(appStatus.appId, appStatus);
-                _this.appList.push(appStatus);
+                _this.add(appConfig);
             });
         };
-        this.load = function (appId, force) {
+        this.load = function (appId, parent, force) {
             if (force === void 0) { force = false; }
             if (typeof appId === 'number') {
                 appId = _this.appList[appId].appId;
@@ -30,6 +23,10 @@ var AppMannger = (function () {
                 var appStatus = _this.appStatusMap.get(appId);
                 console.log(appStatus);
                 if (!appStatus.active || force) {
+                    console.log('parnet', parent, parent instanceof HTMLElement);
+                    if (parent instanceof HTMLElement) {
+                        appStatus.appConfig.parent = parent;
+                    }
                     var loader = new index_1["default"](appStatus.appConfig);
                     loader.load();
                     appStatus.loader = loader;
@@ -41,7 +38,21 @@ var AppMannger = (function () {
             }
         };
         this.reLoad = function (appId) {
-            _this.load(appId, true);
+            _this.load(appId, null, true);
+        };
+        this.add = function (appConfig) {
+            var appStatus = {
+                loader: null,
+                active: false,
+                appId: appConfig.id || _this.getAppId(),
+                appConfig: appConfig
+            };
+            _this.appStatusMap.set(appStatus.appId, appStatus);
+            _this.appList.push(appStatus);
+        };
+        this.del = function (appId) {
+            _this.appList = _this.appList.filter(function (v) { return v.appId === appId; });
+            _this.appStatusMap["delete"](appId);
         };
         this.config = config;
         this.appList = [];

@@ -1,3 +1,6 @@
+/**
+ * @description app加载器，提供app的加载、销毁能力，并执行相关的生命周期方法
+ */
 import JsSandBox from '../JsSandBox/index';
 export declare type AppLoadConfig = {
     id?: string;

@@ -7,6 +7,7 @@ module.exports =  {
   output: {
     path: resolve('dist'),
     filename: 'common.js',
+    libraryTarget: 'umd',
   },
   resolve: {
     extensions: ['.js', '.ts'],

@@ -1,1 +1,1 @@
-export * from './lib/AppMannger/index';
+module.exports = require("./AppMannger");
