@@ -16,14 +16,9 @@ export type AppLoadConfig = {
 };
 enum LoadMode { js = 'script', html = 'html' };
 
-const getDir = (path: string): string => {
+const getDomain = (path: string): string => {
   const chunks = path.split('/');
   return chunks.length === 0 ? path : chunks.slice(0, -1).join('/');
-}
-
-function uintToString(uintArray: Uint8Array) {
-  const encodedString = String.fromCharCode.apply(null, uintArray);
-  return decodeURIComponent(escape(encodedString));
 }
 
 export default class AppLoader {
@@ -45,7 +40,7 @@ export default class AppLoader {
   constructor(config: AppLoadConfig) {
     this.id = config.id || `Id_${new Date().getTime().toString(16)}`;
     this.url = config.url;
-    this.domain = getDir(this.url);
+    this.domain = getDomain(this.url);
     this.jsSandBox = new JsSandBox();
     this.mode = config.mode;
     this.parent = config.parent || document.body;
@@ -75,9 +70,11 @@ export default class AppLoader {
     }
     this.mount();
   }
+
   private async mount(id: string = this.id) {
     this.beforeMounted();
     if (this.mode === LoadMode.html) {
+      // 加载模式html
       const div = document.createElement('div');
       div.id = id;
       const srcList: Array<string> = [];
@@ -85,20 +82,20 @@ export default class AppLoader {
       div.childNodes.forEach((v: any) => {
         if (v.nodeName === 'SCRIPT') {
           const src = v.getAttribute('src');
-          if (src !== '') {
+          if (src !== null) {
             srcList.push(src);
           } else {
-            this.script += v.innerText;
+            this.script += `;${v.innerText};`;
           }
         }
         if (v.nodeName === 'META' || v.nodeName === 'TITLE') {
           div.removeChild(v);
         }
       });
-      console.log('div', div);
       this.parent.appendChild(div);
       this.loadScriptList(srcList);
     } else {
+      // 加载模式js
       this.script = this.htmlText || '';
       this.jsSandBox.run(this.script, () => this.mounted());
     }
@@ -113,9 +110,13 @@ export default class AppLoader {
 
   private async loadScriptList(urlArray: Array<string>) {
     for (let i = 0; i < urlArray.length; i++) {
-      const data = await this.fetchUrlData(this.domain + '/' + urlArray[i]);
+      let url: string = urlArray[i];
+      if (!/^(https?)::/.test(url)) {
+        url = `${this.domain}/${url}`;
+      }
+      const data = await this.fetchUrlData(url);
       if (typeof data !== 'string') {
-        console.error(`fetch ${this.url} failed`);
+        console.error(`fetch ${url} failed`);
         return;
       }
       this.script += data;

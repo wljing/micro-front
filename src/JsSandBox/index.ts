@@ -116,10 +116,6 @@ export default class JsSandBox {
           if (windoFunMap.has(p)) {
             result = result.bind(window);
           }
-          // if (typeof result === 'function' && p !== 'Function' && p !== 'Promise' && p !== 'Date') {
-          //   index = 2;
-          //   result = result.bind(window);
-          // }
         }
         if (self.isShowLog) {
           console.log('get', p, result, log);
@@ -140,7 +136,9 @@ export default class JsSandBox {
           // 沙箱定义属性
           log = 'sendbox';
           self.propertiesMap.set(p, v);
-          window[p] = v; // 使代理生效
+          if (!Reflect.has(window, p)) {
+            window[p] = v; // 使代理生效
+          }
         }
         if (self.isShowLog) {
           console.log('set', p, v, log);

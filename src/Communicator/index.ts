@@ -1,5 +1,5 @@
 /**
- * @description 提供app间的通信能力
+ * @description 基于发布-订阅的通讯器
  */
 
 // 渠道节点类
