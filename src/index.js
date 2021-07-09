@@ -1,1 +1,1 @@
-module.exports = require("./AppMannger");
+module.exports = require("./AppManager");
